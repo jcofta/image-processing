@@ -19,5 +19,5 @@ output = cv2.bitwise_and(img, img, mask=mask)
 img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
 # show the images
 cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
-cv2.imshow('img2', output)
+cv2.imshow('img2', np.hstack([img, output]))
 cv2.waitKey(0)
