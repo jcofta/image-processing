@@ -1,88 +1,23 @@
-from pylab import *
-import skimage
-import img
-import ipywidgets as widgets
-import skimage.morphology as mp
-from skimage import data, io, filters, exposure, feature
-from skimage.filters import rank
-from skimage.util.dtype import convert
-from skimage import img_as_float, img_as_ubyte
-from skimage.io import imshow
-from skimage.io import imshow_collection
-from skimage.viewer import ImageViewer
-from skimage.color import rgb2hsv, hsv2rgb, rgb2gray
-from skimage.filters.edges import convolve
-from matplotlib import pylab as plt
 import numpy as np
-from numpy import array
-from IPython.display import display
-from ipywidgets import interact, interactive, fixed
-from IPython.core.display import clear_output
-from skimage import data, img_as_float
-from skimage import exposure
-from skimage.morphology import disk
-from skimage import measure
-from skimage.feature import canny
-from skimage.transform import (hough_line, hough_line_peaks,
-                               probabilistic_hough_line)
-import warnings
-warnings.simplefilter("ignore")
+import cv2
 
-probe1=io.imread("img/probe_cam5.JPG")
+img = cv2.imread("img/probe_cam5.JPG", cv2.IMREAD_COLOR)
+cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+cv2.imshow('image', img)
+cv2.waitKey(0)
 
-probe1 = rgb2gray(probe1)
-probe1 = img_as_ubyte(probe1)
-med= (filters.median(probe1, disk(2)))
-#imshow(med,cmap=plt.cm.gray)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-gauss = filters.gaussian(img_as_ubyte(med), sigma=2)
-#imshow(gauss,cmap=plt.cm.gray)
+boundaries = ([17, 15, 100], [50, 56, 200])
 
-'''perc=4
-img = img_as_float(gauss)
-MIN = np.percentile(img, perc)
-MAX = np.percentile(img, 100-perc)
+lower = np.array([0, 50, 50], dtype="uint8")
+upper = np.array([20, 255, 255], dtype="uint8")
 
-norm = (img - MIN) / (MAX - MIN)
-norm[norm > 1] = 1
-norm[norm < 0] = 0'''
+mask = cv2.inRange(img, lower, upper)
+output = cv2.bitwise_and(img, img, mask=mask)
 
-#imshow(norm,cmap=plt.cm.gray)
-
-sobel =filters.sobel(gauss)**0.5
-#imshow(sobel,cmap=plt.cm.gray)
-
-thresh = 0.28
-binary = (sobel > thresh)
-binary = np.uint8(binary) # unit64 => unit8
-#imshow(binary,cmap=plt.cm.gray)
-
-dilat = mp.dilation(binary)
-#imshow(dilat,cmap=plt.cm.gray)
-
-lines = probabilistic_hough_line(dilat, line_length=300, line_gap=120)
-
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20,10), sharex=True, sharey=True)
-
-ax1.imshow(probe1, cmap=plt.cm.gray)
-ax1.set_title('Input image')
-ax1.set_axis_off()
-ax1.set_adjustable('box-forced')
-
-ax2.imshow(dilat, cmap=plt.cm.gray)
-ax2.set_title('Dilat')
-ax2.set_axis_off()
-ax2.set_adjustable('box-forced')
-
-for line in lines:
-    p0, p1 = line
-    ax3.plot((p0[0], p1[0]), (p0[1], p1[1]))
-
-ax3.set_title('Probabilistic Hough')
-ax3.set_axis_off()
-ax3.set_adjustable('box-forced')
-
-fig.savefig("img.pdf")
-
-#fig = plt.figure(figsize=(15,5))
-#imshow(dilat,cmap=plt.cm.gray)
+img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+# show the images
+cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
+cv2.imshow('img2', output)
+cv2.waitKey(0)
