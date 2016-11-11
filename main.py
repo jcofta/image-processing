@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-img = cv2.imread("img_ok/probe_cam7.JPG", cv2.IMREAD_COLOR)
+img = cv2.imread("img_ok/probe_cam7.JPG", 1)
 cv2.waitKey(0)
 
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -11,7 +11,6 @@ up_red = np.array([10, 255, 255])
 
 low_blue = np.array([90, 50, 102])
 up_blue = np.array([120, 255, 255])
-
 
 
 def filter_color(lower,upper):
@@ -38,9 +37,9 @@ def filter_color(lower,upper):
     		cv2.circle(img_copy, (cX, cY), 7, (255, 255, 255), -1)
 	
 
-	#cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
+	cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
 	cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
-	#cv2.imshow('img2', np.hstack([mask, dilation, erosion]))
+	cv2.imshow('img2', np.hstack([mask, dilation, erosion]))
 	cv2.imshow('img3', img_copy)
 	cv2.waitKey(0)
 
