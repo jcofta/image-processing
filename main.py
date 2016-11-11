@@ -1,23 +1,23 @@
 import numpy as np
 import cv2
 
-img = cv2.imread("img/probe_cam5.JPG", cv2.IMREAD_COLOR)
-cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-cv2.imshow('image', img)
+img = cv2.imread("img_ok/probe_cam1.JPG", cv2.IMREAD_COLOR)
 cv2.waitKey(0)
 
-img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-boundaries = ([17, 15, 100], [50, 56, 200])
+lower_red = np.array([0, 50, 50])
+upper_red = np.array([10, 255, 255])
 
-lower = np.array([0, 50, 50], dtype="uint8")
-upper = np.array([20, 255, 255], dtype="uint8")
+mask = cv2.inRange(hsv, lower_red, upper_red)
 
-mask = cv2.inRange(img, lower, upper)
-output = cv2.bitwise_and(img, img, mask=mask)
+kernel = np.ones((5,5), np.uint8)
+dilation = cv2.dilate(mask, kernel, iterations=0)
+kernel = np.ones((10,10), np.uint8)
+erosion = cv2.erode(dilation, kernel, iterations=3)
+# output = cv2.bitwise_and(hsv, hsv, mask=mask)
 
-img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-# show the images
 cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
-cv2.imshow('img2', np.hstack([img, output]))
+cv2.imshow('img2', np.hstack([mask, dilation, erosion]))
+# cv2.imshow('img2', np.hstack([img, output]))
 cv2.waitKey(0)
