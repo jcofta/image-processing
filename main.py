@@ -2,19 +2,19 @@ import numpy as np
 import cv2
 
 
-img = cv2.imread("img_ok/probe_cam1.JPG", cv2.IMREAD_COLOR)
+img = cv2.imread("img_ok/probe_cam7.JPG", cv2.IMREAD_COLOR)
 cv2.waitKey(0)
 
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-lower_red = np.array([0, 50, 50])
+lower_red = np.array([0, 50, 102])
 upper_red = np.array([10, 255, 255])
 
 mask = cv2.inRange(hsv, lower_red, upper_red)
 
 kernel = np.ones((5,5), np.uint8)
 dilation = cv2.dilate(mask, kernel, iterations=0)
-kernel = np.ones((10,10), np.uint8)
+kernel = np.ones((8,8), np.uint8)
 erosion = cv2.erode(dilation, kernel, iterations=3)
 im2, contours, hierarchy = cv2.findContours(erosion, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
