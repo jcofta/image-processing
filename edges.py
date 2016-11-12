@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-img = cv2.imread("img_ok/probe_cam1.JPG")
+img = cv2.imread("img_ok/probe_cam3.JPG")
 cv2.waitKey(0)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -68,7 +68,6 @@ thresh = cv2.dilate(thresh, None, iterations=5)
 
 y1,x1 = scan_ymax(thresh)
 y2,x2 = scan_ymin(thresh)
-
 y3,x3 = scan_xmax(thresh)
 y4,x4 = scan_xmin(thresh)
 
@@ -89,4 +88,30 @@ for c in contours:
 
 cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
 cv2.imshow('img3', img_copy)
+
+# Destination image
+size = (600, 300, 3)
+
+im_dst = np.zeros(size, np.uint8)
+
+pts_dst = np.array(
+    [
+        [0, 0],
+        [size[0] - 1, 0],
+        [size[0] - 1, size[1] - 1],
+        [0, size[1] - 1]
+    ], dtype=float
+)
+
+# Calculate the homography
+h, status = cv2.findHomography(np.array([[x1,y1],[x3,y3],[x2,y2],[x4,y4]]), pts_dst)
+
+# Warp source image to destination
+im_dst = cv2.warpPerspective(img, h, size[0:2])
+
+# Show output
+# cv2.namedWindow('img',cv2.WINDOW_NORMAL)
+cv2.imshow("Image", im_dst)
+
+
 cv2.waitKey(0)
