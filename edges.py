@@ -20,7 +20,6 @@ def adjust_gamma(image, gamma=1.0):
 
 gray = adjust_gamma(gray, 1.2)
 
-
 def scan_ymax(image):
     height = np.size(image, 0)
     width = np.size(image, 1)
@@ -49,12 +48,43 @@ def scan_ymin(image):
         if exit:
             break
 
+def scan_xmax(image):
+    height = np.size(image, 0)
+    width = np.size(image, 1)
+
+    for x in range(0, width, 1):
+        exit = False
+        for y in range(0, height, 1):
+            if (image.item(y, x) == 255):
+                exit = True
+                print("Y ", y, "X", x)
+                break
+        if exit:
+            break
+
+def scan_xmin(image):
+    height = np.size(image, 0)
+    width = np.size(image, 1)
+
+    for x in range(width-1, 0, -1):
+        exit = False
+        for y in range(height-1, 0, -1):
+            if (image.item(y, x) == 255):
+                exit = True
+                print("Y ", y, "X", x)
+                break
+        if exit:
+            break
+
 thresh = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)[1]
 thresh = cv2.erode(thresh, None, iterations=1)
 thresh = cv2.dilate(thresh, None, iterations=5)
 
 scan_ymax(thresh)
 scan_ymin(thresh)
+
+scan_xmax(thresh)
+scan_xmin(thresh)
 
 cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
 cv2.imshow('img2', thresh)
