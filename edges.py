@@ -104,7 +104,7 @@ pts_dst = np.array(
 )
 
 # Calculate the homography
-h, status = cv2.findHomography(np.array([[x1,y1],[x3,y3],[x2,y2],[x4,y4]]), pts_dst)
+h, status = cv2.findHomography(np.array([[x3,y3],[x1,y1],[x4,y4],[x2,y3]]), pts_dst)
 
 # Warp source image to destination
 im_dst = cv2.warpPerspective(img, h, size[0:2])
