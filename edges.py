@@ -25,66 +25,52 @@ def scan_ymax(image):
     width = np.size(image, 1)
 
     for y in range(0, height, 1):
-        exit = False
         for x in range(0, width, 1):
             if (image.item(y, x) == 255):
-                exit = True
                 print("Y ", y, "X", x)
-                break
-        if exit:
-            break
+                return y,x
+        
+            
 
 def scan_ymin(image):
     height = np.size(image, 0)
     width = np.size(image, 1)
 
     for y in range(height-1, 0, -1):
-        exit = False
         for x in range(width -1, 0, -1):
             if (image.item(y, x) == 255):
-                exit = True
                 print("Y ", y, "X", x)
-                break
-        if exit:
-            break
+                return y,x
 
 def scan_xmax(image):
     height = np.size(image, 0)
     width = np.size(image, 1)
 
     for x in range(0, width, 1):
-        exit = False
         for y in range(0, height, 1):
             if (image.item(y, x) == 255):
-                exit = True
                 print("Y ", y, "X", x)
-                break
-        if exit:
-            break
+                return y,x
 
 def scan_xmin(image):
     height = np.size(image, 0)
     width = np.size(image, 1)
 
     for x in range(width-1, 0, -1):
-        exit = False
         for y in range(height-1, 0, -1):
             if (image.item(y, x) == 255):
-                exit = True
                 print("Y ", y, "X", x)
-                break
-        if exit:
-            break
+                return y,x
 
 thresh = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)[1]
 thresh = cv2.erode(thresh, None, iterations=1)
 thresh = cv2.dilate(thresh, None, iterations=5)
 
-scan_ymax(thresh)
-scan_ymin(thresh)
+y1,x1 = scan_ymax(thresh)
+y2,x2 = scan_ymin(thresh)
 
-scan_xmax(thresh)
-scan_xmin(thresh)
+y3,x3 = scan_xmax(thresh)
+y4,x4 = scan_xmin(thresh)
 
 cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
 cv2.imshow('img2', thresh)
@@ -92,6 +78,11 @@ cv2.waitKey(0)
 
 img_copy = img
 im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+cv2.circle(img_copy,(x1,y1), 30, (0,0,255), -1)
+cv2.circle(img_copy,(x2,y2), 30, (0,0,255), -1)
+cv2.circle(img_copy,(x3,y3), 30, (0,0,255), -1)
+cv2.circle(img_copy,(x4,y4), 30, (0,0,255), -1)
 
 for c in contours:
     cv2.drawContours(img_copy, [c], -1, (0, 255, 0), -1)
