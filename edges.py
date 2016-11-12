@@ -90,7 +90,7 @@ cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
 cv2.imshow('img3', img_copy)
 
 # Destination image
-size = (600, 300, 3)
+size = (2000, 1000, 3)
 
 im_dst = np.zeros(size, np.uint8)
 
@@ -104,10 +104,19 @@ pts_dst = np.array(
 )
 
 # Calculate the homography
-h, status = cv2.findHomography(np.array([[x3,y3],[x1,y1],[x4,y4],[x2,y3]]), pts_dst)
+h, status = cv2.findHomography(np.array([[x3,y3],[x1,y1],[x4,y4],[x2,y2]]), pts_dst)
 
+
+img2 = cv2.imread("img_ok/probe_cam3.JPG")
 # Warp source image to destination
-im_dst = cv2.warpPerspective(img, h, size[0:2])
+im_dst = cv2.warpPerspective(img2, h, size[0:2])
+
+
+high = np.size(im_dst, 0)
+wide = np.size(im_dst, 1)
+print("h = ",high,"w =",wide)
+
+cv2.imwrite("img_ok/probe_cam3_transformed.JPG",im_dst)
 
 # Show output
 # cv2.namedWindow('img',cv2.WINDOW_NORMAL)
