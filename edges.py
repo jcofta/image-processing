@@ -1,11 +1,28 @@
 import numpy as np
 import cv2
 import math
+from skimage import img_as_float
 
-img = cv2.imread("img_ok/probe_cam3.JPG")
+#load image and convert to gray_scale
+input_img = "img_ok/probe_cam3.JPG"
+
+img = cv2.imread(input_img)
 cv2.waitKey(0)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+#gaussian filter
 gray = cv2.GaussianBlur(gray, (5, 5), 0)
+
+#normalization
+perc=5
+
+img_f = img_as_float(gray)
+MIN = np.percentile(gray, perc)
+MAX = np.percentile(gray, 100-perc)
+
+norm = (gray - MIN) / (MAX - MIN)
+norm[norm > 1] = 1
+norm[norm < 0] = 0
 
 
 def adjust_gamma(image, gamma=1.0):
@@ -17,9 +34,6 @@ def adjust_gamma(image, gamma=1.0):
 
     # apply gamma correction using the lookup table
     return cv2.LUT(image, table)
-
-
-gray = adjust_gamma(gray, 1.2)
 
 def scan_ymax(image):
     height = np.size(image, 0)
@@ -63,19 +77,25 @@ def scan_xmin(image):
                 print("Y ", y, "X", x)
                 return y,x
 
+#filters on input image
+
+gray = adjust_gamma(gray, 1.2)
 thresh = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)[1]
 thresh = cv2.erode(thresh, None, iterations=1)
 thresh = cv2.dilate(thresh, None, iterations=5)
 
+#finding corners of the image
 y1,x1 = scan_ymax(thresh)
 y2,x2 = scan_xmax(thresh)
 y3,x3 = scan_ymin(thresh)
 y4,x4 = scan_xmin(thresh)
 
+#show threshholded image
 cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
 cv2.imshow('img2', thresh)
 cv2.waitKey(0)
 
+#find contours in imput image (can be deleted)
 img_copy = img
 im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -90,7 +110,7 @@ for c in contours:
 cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
 cv2.imshow('img3', img_copy)
 
-# Destination image
+# Destination image size
 size = (2000, 1000, 3)
 
 im_dst = np.zeros(size, np.uint8)
@@ -108,13 +128,15 @@ pts_dst = np.array(
 dist_ymax_xmin = math.sqrt( (x4 - x1)**2 + (y4 - y1)**2 )
 dist_ymax_xmax  = math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
 
+# Find homography depending on rotation of the input image
 if(dist_ymax_xmin > dist_ymax_xmax):
 	h, status = cv2.findHomography(np.array([[x4,y4],[x1,y1],[x2,y2],[x3,y3]]), pts_dst)
 else:
 	h, status = cv2.findHomography(np.array([[x1,y1],[x2,y2],[x3,y3],[x4,y4]]), pts_dst)
 
+# Load input image again
+img2 = cv2.imread(input_img)
 
-img2 = cv2.imread("img_ok/probe_cam3.JPG")
 # Warp source image to destination
 im_dst = cv2.warpPerspective(img2, h, size[0:2])
 
@@ -123,11 +145,10 @@ high = np.size(im_dst, 0)
 wide = np.size(im_dst, 1)
 print("h = ",high,"w =",wide)
 
+# Save the transformed image
 cv2.imwrite("img_ok/probe_cam3_transformed.JPG",im_dst)
 
 # Show output
-# cv2.namedWindow('img',cv2.WINDOW_NORMAL)
+cv2.namedWindow('Image',cv2.WINDOW_NORMAL)
 cv2.imshow("Image", im_dst)
-
-
 cv2.waitKey(0)
