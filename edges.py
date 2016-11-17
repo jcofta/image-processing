@@ -118,9 +118,26 @@ print("h = ",high,"w =",wide)
 
 cv2.imwrite("img_ok/probe_cam3_transformed.JPG",im_dst)
 
+#BIORE WZOR WYCIAGAM Z NIEGO KRAWEDZIE I NANOSZE NA im_dst
+img1 = cv2.imread("diagram_ok.jpg", 1)
+imgray = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
+ret,thresh = cv2.threshold(imgray,127,255,0)
+im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+for c in contours:
+	M = cv2.moments(c)
+	if M["m00"] == 0:
+		M["m00"] = 1
+	cX = int(M["m10"] / M["m00"])
+	cY = int(M["m01"] / M["m00"])
+	cv2.drawContours(im_dst, [c], -1, (0, 0, 0), 3)
+	#cv2.circle(im_dst, (cX, cY), 2, (0, 255, 0), -1)
+
 # Show output
 # cv2.namedWindow('img',cv2.WINDOW_NORMAL)
 cv2.imshow("Image", im_dst)
+
+
 
 
 cv2.waitKey(0)
