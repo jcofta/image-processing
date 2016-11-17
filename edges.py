@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import math
 
 img = cv2.imread("img_ok/probe_cam3.JPG")
 cv2.waitKey(0)
@@ -46,8 +47,8 @@ def scan_xmax(image):
     height = np.size(image, 0)
     width = np.size(image, 1)
 
-    for x in range(0, width, 1):
-        for y in range(0, height, 1):
+    for x in range(width-1, 0, -1):
+        for y in range(0,height, 1):
             if (image.item(y, x) == 255):
                 print("Y ", y, "X", x)
                 return y,x
@@ -56,7 +57,7 @@ def scan_xmin(image):
     height = np.size(image, 0)
     width = np.size(image, 1)
 
-    for x in range(width-1, 0, -1):
+    for x in range( 0,width,1):
         for y in range(height-1, 0, -1):
             if (image.item(y, x) == 255):
                 print("Y ", y, "X", x)
@@ -67,8 +68,8 @@ thresh = cv2.erode(thresh, None, iterations=1)
 thresh = cv2.dilate(thresh, None, iterations=5)
 
 y1,x1 = scan_ymax(thresh)
-y2,x2 = scan_ymin(thresh)
-y3,x3 = scan_xmax(thresh)
+y2,x2 = scan_xmax(thresh)
+y3,x3 = scan_ymin(thresh)
 y4,x4 = scan_xmin(thresh)
 
 cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
@@ -104,7 +105,13 @@ pts_dst = np.array(
 )
 
 # Calculate the homography
-h, status = cv2.findHomography(np.array([[x3,y3],[x1,y1],[x4,y4],[x2,y2]]), pts_dst)
+dist_ymax_xmin = math.sqrt( (x4 - x1)**2 + (y4 - y1)**2 )
+dist_ymax_xmax  = math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
+
+if(dist_ymax_xmin > dist_ymax_xmax):
+	h, status = cv2.findHomography(np.array([[x4,y4],[x1,y1],[x2,y2],[x3,y3]]), pts_dst)
+else:
+	h, status = cv2.findHomography(np.array([[x1,y1],[x2,y2],[x3,y3],[x4,y4]]), pts_dst)
 
 
 img2 = cv2.imread("img_ok/probe_cam3.JPG")
