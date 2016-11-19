@@ -1,20 +1,25 @@
 import numpy as np
 import cv2
 
-img = cv2.imread("img_ok/probe_cam3_transformed.JPG", 1)
+img = cv2.imread("img_ok2/probe_cam1_ready.JPG", 1)
 cv2.waitKey(0)
 
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-low_red = np.array([0, 50, 102])
-up_red = np.array([10, 255, 255])
+low_red1 = np.array([0, 50, 102])
+up_red1 = np.array([10, 255, 255])
+
+low_red2 = np.array([170,50,50])
+up_red2 = np.array([179,255,255])
 
 low_blue = np.array([90, 50, 102])
 up_blue = np.array([120, 255, 255])
 
 
-def filter_color(lower,upper):
-	mask = cv2.inRange(hsv, lower, upper)
+def filter_color(lower1,upper1, lower2, upper2):
+	mask1 = cv2.inRange(hsv, lower1, upper1)
+	mask2 = cv2.inRange(hsv, lower2, upper2)
+	mask=mask1+mask2
 
 	kernel = np.ones((3, 3), np.uint8)
 	dilation = cv2.dilate(mask, kernel, iterations=0)
@@ -43,5 +48,5 @@ def filter_color(lower,upper):
 	cv2.imshow('img3', img_copy)
 	cv2.waitKey(0)
 
-filter_color(low_red,up_red)
+filter_color(low_red1,up_red1, low_red2, up_red2)
 #filter_color(low_blue,up_blue)

@@ -4,7 +4,7 @@ import math
 from skimage import img_as_float
 
 #load image and convert to gray_scale
-input_img = "img_ok/probe_cam3.JPG"
+input_img = "img_ok2/probe_cam1.JPG"
 
 img = cv2.imread(input_img)
 cv2.waitKey(0)
@@ -96,22 +96,22 @@ cv2.imshow('img2', thresh)
 cv2.waitKey(0)
 
 #find contours in imput image (can be deleted)
-img_copy = img
-im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#img_copy = img
+#im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-cv2.circle(img_copy,(x1,y1), 30, (0,0,255), -1)
-cv2.circle(img_copy,(x2,y2), 30, (0,0,255), -1)
-cv2.circle(img_copy,(x3,y3), 30, (0,0,255), -1)
-cv2.circle(img_copy,(x4,y4), 30, (0,0,255), -1)
+#cv2.circle(img_copy,(x1,y1), 30, (0,0,255), -1)
+#cv2.circle(img_copy,(x2,y2), 30, (0,0,255), -1)
+#cv2.circle(img_copy,(x3,y3), 30, (0,0,255), -1)
+#cv2.circle(img_copy,(x4,y4), 30, (0,0,255), -1)
 
-for c in contours:
-    cv2.drawContours(img_copy, [c], -1, (0, 255, 0), -1)
+#for c in contours:
+#    cv2.drawContours(img_copy, [c], -1, (0, 255, 0), -1)
 
-cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
-cv2.imshow('img3', img_copy)
+#cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
+#cv2.imshow('img3', img_copy)
 
 # Destination image size
-size = (2000, 1000, 3)
+size = (2048, 1024, 3)
 
 im_dst = np.zeros(size, np.uint8)
 
@@ -146,7 +146,31 @@ wide = np.size(im_dst, 1)
 print("h = ",high,"w =",wide)
 
 # Save the transformed image
-cv2.imwrite("img_ok/probe_cam3_transformed.JPG",im_dst)
+cv2.imwrite("img_ok2/probe_cam1_transformed.JPG",im_dst)
+
+#load template image
+img_template = cv2.imread("diagram_new.jpg", 1)
+cv2.waitKey(0)
+
+#convert to grayscale
+imgray = cv2.cvtColor(img_template,cv2.COLOR_BGR2GRAY)
+
+#find contours 
+ret,thresh = cv2.threshold(imgray,127,255,0)
+im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+#draw the contours on the homografed image
+
+for c in contours:
+	M = cv2.moments(c)
+	if M["m00"] == 0:
+		M["m00"] = 1
+	cX = int(M["m10"] / M["m00"])
+	cY = int(M["m01"] / M["m00"])
+	cv2.drawContours(im_dst, [c], -1, (0, 0, 0), 3)
+
+#save image with thick egdes
+cv2.imwrite("img_ok2/probe_cam1_ready.JPG",im_dst)
 
 # Show output
 cv2.namedWindow('Image',cv2.WINDOW_NORMAL)
