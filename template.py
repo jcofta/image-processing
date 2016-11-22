@@ -32,8 +32,8 @@ template = auto_canny(template)
 (tH, tW) = template.shape[:2]
 cv2.imshow("Template", template)
 
-# image = cv2.imread('img_ok2/diagram_new.jpg')
-image = cv2.imread('img_ok2/probe_cam1_transformed.JPG')
+image = cv2.imread('img_ok2/diagram_new.jpg')
+#image = cv2.imread('img_ok2/probe_cam1_transformed.JPG')
 # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 cv2.namedWindow('Input Image', cv2.WINDOW_NORMAL)
@@ -41,36 +41,74 @@ cv2.imshow('Input Image', image)
 
 ##PREPARE EDGES
 #gaussian filter
-image_blure = cv2.GaussianBlur(image, (5, 5), 0)
+#image_blure = cv2.GaussianBlur(image, (5, 5), 0)
 
-dst = np.zeros(shape=(tW,tH))
-dst = cv2.normalize(image_blure, dst, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 
-cv2.namedWindow('Norm hist Image',cv2.WINDOW_NORMAL)
-cv2.imshow('Norm hist Image', dst)
+###################### PROBY WYRZUCENIA KOLORÓW
+#hsv_blure = cv2.cvtColor(image_blure, cv2.COLOR_BGR2HSV)
+#low_red1 = np.array([0, 50, 102])
+#up_red1 = np.array([10, 255, 255])
+#low_red2 = np.array([170,50,50])
+#up_red2 = np.array([179,255,255])
 
-image_gamma = adjust_gamma(image_blure, 1.2)
+#mask1 = cv2.inRange(hsv_blure, low_red1, up_red1)
+#mask2 = cv2.inRange(hsv_blure, low_red2, up_red2)
+#mask=mask1+mask2
+#print(mask)
 
-thresh = cv2.threshold(image_blure, 80, 255, cv2.THRESH_BINARY_INV)[1]
+#height = np.size(hsv_blure, 0)
+#width = np.size(hsv_blure, 1)
+
+#for x in range( 0,width,1):
+#	for y in range(0, height, 1):
+#		if (mask.item(y,x)==255):
+#			print("Y= ",y, "X=",x)
+#			image.item(y,x)=(0,0,0)
+
+
+#cv2.namedWindow('mask', cv2.WINDOW_NORMAL)
+#cv2.imshow('mask', mask)
+
+#masked_img = cv2.bitwise_and(image,image,mask = mask)
+
+#cv2.namedWindow('masked image', cv2.WINDOW_NORMAL)
+#cv2.imshow('masked image', masked_img)
+#cv2.namedWindow('HSV Blurred',cv2.WINDOW_NORMAL)
+#cv2.imshow('HSV Blurred', hsv_blure)
+###############################
+
+
+#dst = np.zeros(shape=(tW,tH))
+#dst = cv2.normalize(image_blure, dst, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+
+#cv2.namedWindow('Norm hist Image',cv2.WINDOW_NORMAL)
+#cv2.imshow('Norm hist Image', dst)
+
+
+##
+image_gamma = adjust_gamma(image, 1.2)
+
+thresh = cv2.threshold(image, 80, 255, cv2.THRESH_BINARY_INV)[1]
 # thresh = cv2.erode(thresh, None, iterations=1)
 # thresh = cv2.dilate(thresh, None, iterations=1)
 
 cv2.namedWindow('Thresh Image',cv2.WINDOW_NORMAL)
 cv2.imshow('Thresh Image', thresh)
 
-image_canny = auto_canny(thresh)
+#image_canny = auto_canny(thresh)
 
-cv2.namedWindow('Canny',cv2.WINDOW_NORMAL)
-cv2.imshow('Canny', image_canny)
+#cv2.namedWindow('Canny',cv2.WINDOW_NORMAL)
+#cv2.imshow('Canny', image_canny)
 
 # gray = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
-gray = image_canny
+#gray = image_canny
+gray=thresh
 
 found = None
 i=0
 
 # res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
-threshold = 0.2
+threshold = 0.44
 # loc = np.where( res >= threshold)
 # for pt in zip(*loc[::-1]):
 # cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
