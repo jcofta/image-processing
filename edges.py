@@ -1,29 +1,17 @@
 import numpy as np
 import cv2
+import csv
 import math
 from skimage import img_as_float
 
-#load image and convert to gray_scale
-input_img = "img_ok2/probe_cam1.JPG"
+show_images=False
 
-img = cv2.imread(input_img)
+input_img = "probe_cam5"
+img = cv2.imread('img_fin/'+ input_img +'.JPG')
+
+cv2.namedWindow('INPUT', cv2.WINDOW_NORMAL)
+cv2.imshow('INPUT', img)
 cv2.waitKey(0)
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-#gaussian filter
-gray = cv2.GaussianBlur(gray, (5, 5), 0)
-
-#normalization
-perc=5
-
-img_f = img_as_float(gray)
-MIN = np.percentile(gray, perc)
-MAX = np.percentile(gray, 100-perc)
-
-norm = (gray - MIN) / (MAX - MIN)
-norm[norm > 1] = 1
-norm[norm < 0] = 0
-
 
 def adjust_gamma(image, gamma=1.0):
     # build a lookup table mapping the pixel values [0, 255] to
@@ -44,8 +32,6 @@ def scan_ymax(image):
             if (image.item(y, x) == 255):
                 print("Y ", y, "X", x)
                 return y,x
-        
-            
 
 def scan_ymin(image):
     height = np.size(image, 0)
@@ -78,7 +64,8 @@ def scan_xmin(image):
                 return y,x
 
 #filters on input image
-
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+gray = cv2.GaussianBlur(gray, (5, 5), 0)
 gray = adjust_gamma(gray, 1.2)
 thresh = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)[1]
 thresh = cv2.erode(thresh, None, iterations=1)
@@ -91,24 +78,11 @@ y3,x3 = scan_ymin(thresh)
 y4,x4 = scan_xmin(thresh)
 
 #show threshholded image
-cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
-cv2.imshow('img2', thresh)
-cv2.waitKey(0)
+if(show_images):
+    cv2.namedWindow('img2', cv2.WINDOW_NORMAL)
+    cv2.imshow('img2', thresh)
+    cv2.waitKey(0)
 
-#find contours in imput image (can be deleted)
-#img_copy = img
-#im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-#cv2.circle(img_copy,(x1,y1), 30, (0,0,255), -1)
-#cv2.circle(img_copy,(x2,y2), 30, (0,0,255), -1)
-#cv2.circle(img_copy,(x3,y3), 30, (0,0,255), -1)
-#cv2.circle(img_copy,(x4,y4), 30, (0,0,255), -1)
-
-#for c in contours:
-#    cv2.drawContours(img_copy, [c], -1, (0, 255, 0), -1)
-
-#cv2.namedWindow('img3', cv2.WINDOW_NORMAL)
-#cv2.imshow('img3', img_copy)
 
 # Destination image size
 size = (2048, 1024, 3)
@@ -135,44 +109,123 @@ else:
 	h, status = cv2.findHomography(np.array([[x1,y1],[x2,y2],[x3,y3],[x4,y4]]), pts_dst)
 
 # Load input image again
-img2 = cv2.imread(input_img)
+img2 = cv2.imread('img_fin/'+ input_img +'.JPG')
 
 # Warp source image to destination
 im_dst = cv2.warpPerspective(img2, h, size[0:2])
-
 
 high = np.size(im_dst, 0)
 wide = np.size(im_dst, 1)
 print("h = ",high,"w =",wide)
 
 # Save the transformed image
-cv2.imwrite("img_ok2/probe_cam1_transformed.JPG",im_dst)
+cv2.imwrite('img_fin/' + input_img + '_transformed.JPG',im_dst)
 
 #load template image
-img_template = cv2.imread("diagram_new.jpg", 1)
-cv2.waitKey(0)
+img_template = cv2.imread('img_fin/diagram_left_transformed.JPG', 1)
 
 #convert to grayscale
 imgray = cv2.cvtColor(img_template,cv2.COLOR_BGR2GRAY)
 
-#find contours 
+#find contours
 ret,thresh = cv2.threshold(imgray,127,255,0)
 im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 #draw the contours on the homografed image
-
 for c in contours:
-	M = cv2.moments(c)
-	if M["m00"] == 0:
-		M["m00"] = 1
-	cX = int(M["m10"] / M["m00"])
-	cY = int(M["m01"] / M["m00"])
-	cv2.drawContours(im_dst, [c], -1, (0, 0, 0), 3)
+    perimeter = cv2.arcLength(c,True)
+    if (perimeter<2000):
+        cv2.drawContours(im_dst, [c], -1, (0, 0, 0), 4)
 
 #save image with thick egdes
-cv2.imwrite("img_ok2/probe_cam1_ready.JPG",im_dst)
+cv2.imwrite('img_fin/'+ input_img+'_ready.JPG',im_dst)
 
 # Show output
-cv2.namedWindow('Image',cv2.WINDOW_NORMAL)
-cv2.imshow("Image", im_dst)
-cv2.waitKey(0)
+if(show_images):
+    cv2.namedWindow('Image',cv2.WINDOW_NORMAL)
+    cv2.imshow("Image", im_dst)
+    cv2.waitKey(0)
+
+hsv = cv2.cvtColor(im_dst, cv2.COLOR_BGR2HSV)
+
+low_red1 = np.array([0, 50, 102])
+up_red1 = np.array([10, 255, 255])
+
+low_red2 = np.array([170,50,50])
+up_red2 = np.array([179,255,255])
+
+low_blue = np.array([80, 10, 50])
+up_blue = np.array([130, 255, 255])
+
+mask_files = {}
+for id in range(1,7,1):
+	for lr in ['l', 'r']:
+		for ud in ['u', 'd']:
+			for side in range(0,5,1):
+				filename = str(id) + lr + ud + str(side)
+				mask_img = cv2.imread('img_fin/masks/' + filename + '.JPG', 0) #gray
+				mask_files[filename] = mask_img.copy()
+
+
+
+#match single position with mask
+def match_mask(pos):
+	#print(pos)
+	import time
+	for id in range(1,7,1):
+		for lr in ['l', 'r']:
+			for ud in ['u', 'd']:
+				for side in range(0,5,1):
+					filename = str(id) + lr + ud + str(side)
+					#print(filename)
+					# time.sleep(0.1)
+					mask_img = mask_files[filename]
+					if mask_img.item( pos[1], pos[0]) == 255:
+						#print("RETURN")
+						return filename
+	return None
+
+def match_moments_with_masks(teeth_state, moment_list, value):
+	for moment in moment_list:
+		res = match_mask(moment)
+		if res:
+			teeth_state[res] = value
+	return teeth_state
+
+def filter_color(lower1,upper1, lower2, upper2):
+    mask1 = cv2.inRange(hsv, lower1, upper1)
+    mask2 = cv2.inRange(hsv, lower2, upper2)
+    mask=mask1+mask2
+    kernel = np.ones((5, 5), np.uint8)
+    erosion = cv2.erode(mask, kernel, iterations=2)
+    im2, contours, hierarchy = cv2.findContours(erosion, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    img_copy = im_dst
+    moments_list = []
+    for c in contours:
+        M = cv2.moments(c)
+        if M["m00"] == 0:
+            M["m00"] = 1
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        cv2.circle(img_copy, (cX, cY), 4, (0, 255, 0), -1)
+        moments_list.append([cX, cY])
+
+    cv2.namedWindow('end', cv2.WINDOW_NORMAL)
+    cv2.imshow('end', img_copy)
+    cv2.waitKey(0)
+    return moments_list
+
+teeth_state_glob = {}
+
+red_moments = filter_color(low_red1,up_red1, low_red2, up_red2)
+match_moments_with_masks(teeth_state_glob, red_moments, 'red')
+blue_moments = filter_color(low_blue,up_blue, low_blue, up_blue)
+match_moments_with_masks(teeth_state_glob, blue_moments, 'blue')
+
+for keys,values in teeth_state_glob.items():
+    print(keys + " : " + values)
+
+with open('dict.csv', 'w') as f:  # Just use 'w' mode in 3.x
+    w = csv.DictWriter(f, teeth_state_glob.keys())
+    w.writeheader()
+    w.writerow(teeth_state_glob)
