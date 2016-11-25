@@ -4,9 +4,9 @@ import csv
 import math
 from skimage import img_as_float
 
-show_images=False
+show_images=True
 
-input_img = "probe_cam5"
+input_img = "probe_cam1"
 img = cv2.imread('img_fin/'+ input_img +'.JPG')
 
 cv2.namedWindow('INPUT', cv2.WINDOW_NORMAL)
@@ -135,7 +135,7 @@ im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPRO
 for c in contours:
     perimeter = cv2.arcLength(c,True)
     if (perimeter<2000):
-        cv2.drawContours(im_dst, [c], -1, (0, 0, 0), 4)
+        cv2.drawContours(im_dst, [c], -1, (0, 0, 0), 6)
 
 #save image with thick egdes
 cv2.imwrite('img_fin/'+ input_img+'_ready.JPG',im_dst)
@@ -196,6 +196,9 @@ def filter_color(lower1,upper1, lower2, upper2):
     mask1 = cv2.inRange(hsv, lower1, upper1)
     mask2 = cv2.inRange(hsv, lower2, upper2)
     mask=mask1+mask2
+    cv2.namedWindow('color_mask', cv2.WINDOW_NORMAL)
+    cv2.imshow('color_mask', mask)
+    cv2.waitKey(0)
     kernel = np.ones((5, 5), np.uint8)
     erosion = cv2.erode(mask, kernel, iterations=2)
     im2, contours, hierarchy = cv2.findContours(erosion, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -218,9 +221,9 @@ def filter_color(lower1,upper1, lower2, upper2):
 teeth_state_glob = {}
 
 red_moments = filter_color(low_red1,up_red1, low_red2, up_red2)
-match_moments_with_masks(teeth_state_glob, red_moments, 'red')
+match_moments_with_masks(teeth_state_glob, red_moments, 'prochnica')
 blue_moments = filter_color(low_blue,up_blue, low_blue, up_blue)
-match_moments_with_masks(teeth_state_glob, blue_moments, 'blue')
+match_moments_with_masks(teeth_state_glob, blue_moments, 'wypelnienie')
 
 for keys,values in teeth_state_glob.items():
     print(keys + " : " + values)
